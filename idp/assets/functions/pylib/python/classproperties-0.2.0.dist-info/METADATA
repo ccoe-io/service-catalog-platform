@@ -1,0 +1,41 @@
+Metadata-Version: 2.1
+Name: classproperties
+Version: 0.2.0
+Summary: property for class methods
+Home-page: https://github.com/dpep/pyclassproperties
+Author: Daniel Pepper
+License: MIT
+Platform: any
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Programming Language :: Python
+Classifier: Topic :: Utilities
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Operating System :: OS Independent
+Classifier: Natural Language :: English
+License-File: LICENSE.txt
+
+classproperty
+======
+
+#### Install
+```pip install classproperties```
+
+
+#### Usage
+```
+from classproperties import classproperty
+
+class Foo:
+  @classproperty
+  def prop():
+    return 'hi there'
+
+  @classproperty
+  def other(cls):
+    return 'also works'
+
+
+Foo.prop
+Foo.other
+```

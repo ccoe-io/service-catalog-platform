@@ -1,0 +1,9 @@
+version: 0.2
+env:
+  shell: bash
+phases:
+  build:
+    commands:
+      - OUTPUT_PROFILE=depsdeploy
+      - ./session.sh $role_arn $OUTPUT_PROFILE
+      - aws --profile $OUTPUT_PROFILE cloudformation delete-stack --stack-name $stack_name

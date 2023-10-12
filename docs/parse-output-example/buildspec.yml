@@ -1,0 +1,19 @@
+batch:
+  build-list:
+  - buildspec: deploy.yml
+    env:
+      variables:
+        role_arn: arn:aws:iam::976767091992:role/service-catalog-platform-exec
+        stack_name: SC-idp-dependencies
+        template_file_name: 976767091992.json
+    identifier: 976767091992_deploy
+    ignore-failure: false
+  - buildspec: deploy.yml
+    env:
+      variables:
+        role_arn: arn:aws:iam::155228113554:role/service-catalog-platform-exec
+        stack_name: SC-idp-dependencies
+        template_file_name: 155228113554.json
+    identifier: 155228113554_deploy
+    ignore-failure: false
+version: 0.2

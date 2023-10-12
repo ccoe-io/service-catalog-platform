@@ -1,0 +1,151 @@
+Metadata-Version: 2.1
+Name: datafiles
+Version: 2.0
+Summary: File-based ORM for dataclasses.
+Home-page: https://pypi.org/project/datafiles
+License: MIT
+Keywords: dataclasses,serialization,type-annotations,object-relational mapping,YAML,JSON,TOML
+Author: Jace Browning
+Author-email: jacebrowning@gmail.com
+Requires-Python: >=3.8,<4.0
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Topic :: Software Development
+Classifier: Topic :: Utilities
+Requires-Dist: cached_property (>=1.5,<2.0)
+Requires-Dist: classproperties (>=0.2,<0.3)
+Requires-Dist: minilog (>=2.1,<3.0)
+Requires-Dist: parse (>=1.12,<2.0)
+Requires-Dist: ruamel.yaml (>=0.17.21,<0.18.0)
+Requires-Dist: tomlkit (>=0.10.1,<0.11.0)
+Project-URL: Documentation, https://datafiles.readthedocs.io
+Project-URL: Repository, https://github.com/jacebrowning/datafiles
+Description-Content-Type: text/markdown
+
+# Datafiles: A file-based ORM for Python dataclasses
+
+Datafiles is a bidirectional serialization library for Python [dataclasses](https://docs.python.org/3/library/dataclasses.html) to synchronize objects to the filesystem using type annotations. It supports a variety of file formats with round-trip preservation of formatting and comments, where possible. Object changes are automatically saved to disk and only include the minimum data needed to restore each object.
+
+[![Travis CI](https://img.shields.io/travis/com/jacebrowning/datafiles/main.svg?label=unix)](https://travis-ci.com/jacebrowning/datafiles)
+[![AppVeyor](https://img.shields.io/appveyor/ci/jacebrowning/datafiles/main.svg?label=windows)](https://ci.appveyor.com/project/jacebrowning/datafiles)
+[![Coveralls](https://img.shields.io/coveralls/jacebrowning/datafiles.svg)](https://coveralls.io/r/jacebrowning/datafiles)
+[![PyPI License](https://img.shields.io/pypi/l/datafiles.svg)](https://pypi.org/project/datafiles)
+[![PyPI Version](https://img.shields.io/pypi/v/datafiles.svg)](https://pypi.org/project/datafiles)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/datafiles.svg?color=orange)](https://pypistats.org/packages/datafiles)
+[![Gitter](https://img.shields.io/gitter/room/jacebrowning/datafiles?color=D0164E)](https://gitter.im/jacebrowning/datafiles)
+
+Some common use cases include:
+
+- Coercing user-editable files into the proper Python types
+- Storing program configuration and data in version control
+- Loading data fixtures for demonstration or testing purposes
+- Synchronizing application state using file sharing services
+- Prototyping data models agnostic of persistence backends
+
+Watch [my lightning talk](https://www.youtube.com/watch?v=moYkuNrmc1I&feature=youtu.be&t=1225) for a demo of this in action!
+
+## Overview
+
+Take an existing dataclass such as [this example](https://docs.python.org/3/library/dataclasses.html#module-dataclasses) from the documentation:
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class InventoryItem:
+    """Class for keeping track of an item in inventory."""
+
+    name: str
+    unit_price: float
+    quantity_on_hand: int = 0
+
+    def total_cost(self) -> float:
+        return self.unit_price * self.quantity_on_hand
+```
+
+and decorate it with a directory pattern to synchronize instances:
+
+```python
+from datafiles import datafile
+
+@datafile("inventory/items/{self.name}.yml")
+class InventoryItem:
+    ...
+```
+
+Then, work with instances of the class as normal:
+
+```python
+>>> item = InventoryItem("widget", 3)
+```
+
+```yaml
+# inventory/items/widget.yml
+
+unit_price: 3.0
+```
+
+Changes to the object are automatically saved to the filesystem:
+
+```python
+>>> item.quantity_on_hand += 100
+```
+
+```yaml
+# inventory/items/widget.yml
+
+unit_price: 3.0
+quantity_on_hand: 100
+```
+
+Changes to the filesystem are automatically reflected in the object:
+
+```yaml
+# inventory/items/widget.yml
+
+unit_price: 2.5 # <= manually changed from "3.0"
+quantity_on_hand: 100
+```
+
+```python
+>>> item.unit_price
+2.5
+```
+
+Objects can also be restored from the filesystem:
+
+```python
+>>> from datafiles import Missing
+>>> item = InventoryItem("widget", Missing)
+>>> item.unit_price
+2.5
+>>> item.quantity_on_hand
+100
+```
+
+## Installation
+
+Install this library directly into an activated virtual environment:
+
+```
+$ pip install datafiles
+```
+
+or add it to your [Poetry](https://poetry.eustace.io/) project:
+
+```
+$ poetry add datafiles
+```
+
+## Documentation
+
+To see additional synchronization and formatting options, please consult the [full documentation](https://datafiles.readthedocs.io).
+

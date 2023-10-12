@@ -1,0 +1,48 @@
+{
+  "app": "python3 app.py",
+  "watch": {
+    "include": [
+      "**"
+    ],
+    "exclude": [
+      "README.md",
+      "cdk*.json",
+      "requirements*.txt",
+      "source.bat",
+      "**/__init__.py",
+      "python/__pycache__",
+      "tests",
+      ".venv/"
+    ]
+  },
+  "context": {
+    "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
+    "@aws-cdk/core:stackRelativeExports": true,
+    "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
+    "@aws-cdk/aws-lambda:recognizeVersionProps": true,
+    "@aws-cdk/aws-cloudfront:defaultSecurityPolicyTLSv1.2_2021": true,
+    "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true,
+    "@aws-cdk/aws-ec2:uniqueImdsv2TemplateName": true,
+    "@aws-cdk/aws-iam:minimizePolicies": true,
+    "@aws-cdk/core:target-partitions": [
+      "aws",
+      "aws-cn"
+    ],
+    "SOURCE": {
+      "git": {
+        "repo": "{{ platform-repository }}",
+        "branch": "{{ platform-repository-branch-name }}",
+        "connection_arn_ssm_parameter": "{{ ssm-parameter-name }}"
+      }
+    },
+    "CATALOG_SOURCE": {
+      "git": {
+        "repo": "{{ catalog-repository }}",
+        "branch": "{{ catalog-repository-branch-name }}",
+        "connection_arn_ssm_parameter": "{{ ssm-parameter-name }}"
+      }
+    },
+    "SPOKE_XACC_ROLE": "service-catalog-platform-exec",
+    "SSM_PARAM_NAME_ORG_ID": "{{ ssm-parameter-name }}"
+  }
+}
