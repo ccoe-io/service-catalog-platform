@@ -67,7 +67,7 @@ class PortfolioStack(Stack):
 
         for account_id in portfolio['accounts']:
             CustomResource(
-                self, "share-"+account_id,
+                self, "share-"+account_id+portfolio['mid'],
                 service_token=self.share_portfolio_function.function_arn,
                 properties={
                     "PortfolioId": portfolio_res.portfolio_id,
@@ -87,7 +87,7 @@ class PortfolioStack(Stack):
                 for i, v in enumerate(principal['Values']):
                     servicecatalog.CfnPortfolioPrincipalAssociation(
                         self,
-                        "ppa-"+str(i),
+                        "ppa-"+portfolio_res.portfolio_id+str(i),
                         portfolio_id=portfolio_res.portfolio_id,
                         principal_arn=f"arn:aws:iam:::role/{v}",
                         principal_type="IAM_PATTERN"
