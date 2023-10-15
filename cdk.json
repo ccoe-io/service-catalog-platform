@@ -30,19 +30,19 @@
     ],
     "SOURCE": {
       "git": {
-        "repo": "{{ platform-repository }}",
-        "branch": "{{ platform-repository-branch-name }}",
-        "connection_arn_ssm_parameter": "{{ ssm-parameter-name }}"
+        "repo": "ccoe-io/service-catalog-platform",
+        "branch": "main",
+        "connection_arn_ssm_parameter": "/landingzone/baseline/github/connection"
       }
     },
     "CATALOG_SOURCE": {
       "git": {
-        "repo": "{{ catalog-repository }}",
-        "branch": "{{ catalog-repository-branch-name }}",
-        "connection_arn_ssm_parameter": "{{ ssm-parameter-name }}"
+        "repo": "MUFGIS/devops/alz/core-deployments/service-catalog-catalog",
+        "branch": "main",
+        "connection_arn_ssm_parameter": "/landingzone/baseline/gitlab/connection"
       }
     },
     "SPOKE_XACC_ROLE": "service-catalog-platform-exec",
-    "SSM_PARAM_NAME_ORG_ID": "{{ ssm-parameter-name }}"
+    "SSM_PARAM_NAME_ORG_ID": "/landingzone/organization/id"
   }
 }
