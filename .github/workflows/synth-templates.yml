@@ -1,10 +1,6 @@
-on: [workflow_dispatch]
+on: workflow_dispatch
 
 jobs:
-  aws_cdk:
-    runs-on: ubuntu-latest
-    steps:
-
   release:
     name: Create Release
     runs-on: ubuntu-latest
