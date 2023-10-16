@@ -87,7 +87,7 @@ class PortfolioStack(Stack):
                 for i, v in enumerate(principal['Values']):
                     servicecatalog.CfnPortfolioPrincipalAssociation(
                         self,
-                        "ppa-"+portfolio_res.portfolio_id+str(i),
+                        "ppa-"+portfolio['mid']+str(i),
                         portfolio_id=portfolio_res.portfolio_id,
                         principal_arn=f"arn:aws:iam:::role/{v}",
                         principal_type="IAM_PATTERN"
