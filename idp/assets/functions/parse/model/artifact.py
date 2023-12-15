@@ -2,6 +2,7 @@ from dataclasses import dataclass, field, InitVar
 import os
 import subprocess
 import sys
+from pathlib import Path
 from logger import logger
 from botocore.exceptions import ClientError
 from aws.connection import resource
@@ -97,8 +98,16 @@ class Template():
         output_file = os.path.abspath('packaged.yml')
         try:
             # run_path = os.path.abspath('.')
-            # dir_path = os.path.dirname(os.path.abspath(self.local_path))
+            dir_path = os.path.dirname(os.path.abspath(self.local_path))
             # os.chdir(dir_path)
+            requirements_file = list(
+                Path(dir_path).rglob('requirements.txt'))[0]
+            app_path = os.path.dirname(os.path.abspath(requirements_file))
+            args = ['pip', 'install', '-q', '-r',
+                    requirements_file, '--target', app_path]
+            subproc_res = subprocess.run(args)
+            logger.debug('subprocess run completed {}'.format(subproc_res))
+
             parameters = [
                 '--template-file', self.local_path,
                 '--s3-bucket', self.s3bucket,
