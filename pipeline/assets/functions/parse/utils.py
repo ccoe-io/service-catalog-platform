@@ -14,9 +14,9 @@ def zipdir(path: str, ziph: ZipFile) -> None:
     for root, dirs, files in walk(path):
         for file in files:
             ziph.write(
-                path.join(root, file), 
+                path.join(root, file),
                 path.relpath(
-                    path.join(root, file), 
+                    path.join(root, file),
                     path.join(path, '..')
                 )
             )
@@ -115,20 +115,21 @@ def create_json_file(data: dict, file_name: str=None) -> str:
 
 
 def nested_stack_resource(
-    logical_id: str, template_url: str, 
-    parameters: dict=None, depends_on: list=None,
-    comment: str=None) -> dict:
+    logical_id: str, template_url: str,
+    parameters: dict = None, depends_on: list = None,
+    comment: str = None
+) -> dict:
 
     if not comment:
         comment = logical_id
     resource = {
         logical_id:
         {
-            "Type" : "AWS::CloudFormation::Stack",
-            "Properties" : {
-                "Tags" : [{"Key":"idp-sc-platform", "Value":f"{comment}"}],
-                "TemplateURL" : template_url,
-                "TimeoutInMinutes" : 15
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "Tags": [{"Key": "core-sc-platform", "Value": f"{comment}"}],
+                "TemplateURL": template_url,
+                "TimeoutInMinutes": 35
             }
         }
     }
@@ -137,4 +138,3 @@ def nested_stack_resource(
     if depends_on:
         resource[logical_id]['DependsOn'] = depends_on
     return resource
-    

@@ -8,6 +8,10 @@ from botocore.exceptions import ClientError
 from .logger import logger
 from . import utils
 
+SSM_PARAMETER_NAME_PRODUCTS = '/core/service-catalog/products/{}'
+SSM_PARAMETER_NAME_PORTFOLIOS = '/core/service-catalog/portfolios/{}'
+SSM_PARAMETER_NAME_TAGOPTIONS = '/core/service-catalog/tagoptions/{}'
+
 ssm_client = boto3.session.Session().client('ssm')
 
 
@@ -20,7 +24,7 @@ class AssocStack(Stack):
         for mproduct in mproducts:
             try:
                 product_id = ssm_client.get_parameter(
-                    Name='/idp/stacks/products/{}'.format(mproduct['mid']))['Parameter']['Value']
+                    Name=SSM_PARAMETER_NAME_PRODUCTS.format(mproduct['mid']))['Parameter']['Value']
                 self.create_tag_assoc(product_id, mproduct['assoc_tag_options'])
             except ClientError as err:
                 if not err.response['Error']['Code'] == 'ParameterNotFound':
@@ -29,7 +33,7 @@ class AssocStack(Stack):
         for mportfolio in mportfolios:
             try:
                 portfolio_id = ssm_client.get_parameter(
-                    Name='/idp/stacks/portfolios/{}'.format(mportfolio['mid']))['Parameter']['Value']
+                    Name=SSM_PARAMETER_NAME_PORTFOLIOS.format(mportfolio['mid']))['Parameter']['Value']
                 self.create_tag_assoc(portfolio_id, mportfolio['assoc_tag_options'])
             except ClientError as err:
                 if not err.response['Error']['Code'] == 'ParameterNotFound':
@@ -46,7 +50,7 @@ class AssocStack(Stack):
             logger.debug("CDK render Assoc: {} tag: {}".format(resource_id, tag_option_mid))
             try:
                 tag_option_id = ssm_client.get_parameter(
-                    Name='/idp/stacks/tagoptions/{}'.format(tag_option_mid))['Parameter']['Value']
+                    Name=SSM_PARAMETER_NAME_TAGOPTIONS.format(tag_option_mid))['Parameter']['Value']
                 servicecatalog.CfnTagOptionAssociation(self, f"{resource_id}{tag_option_mid}",
                     resource_id=resource_id,
                     tag_option_id=tag_option_id
@@ -58,9 +62,9 @@ class AssocStack(Stack):
     def associate_product_to_portfolio(self, mportfolio, mproduct):
         try:
             portfolio_id = ssm_client.get_parameter(
-                Name='/idp/stacks/portfolios/{}'.format(mportfolio['mid']))['Parameter']['Value']
+                Name=SSM_PARAMETER_NAME_PORTFOLIOS.format(mportfolio['mid']))['Parameter']['Value']
             product_id = ssm_client.get_parameter(
-                Name='/idp/stacks/products/{}'.format(mproduct['mid']))['Parameter']['Value']
+                Name=SSM_PARAMETER_NAME_PRODUCTS.format(mproduct['mid']))['Parameter']['Value']
             launch_role_name = mproduct['launch_role_name']
 
             ppassoc = servicecatalog.CfnPortfolioProductAssociation(

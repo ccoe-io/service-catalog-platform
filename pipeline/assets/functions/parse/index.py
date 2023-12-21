@@ -1,7 +1,3 @@
-# import sys
-# import os
-# sys.path.append(os.path.join(os.path.dirname(__file__)))
-
 from os import environ, path
 from typing import List
 from dataclasses import asdict
@@ -38,12 +34,15 @@ PORTFOLIO_MANIFEST_FILENAME = 'manifest.yml'
 DEPENDENCIES_PATH = environ.get('DEPENDENCIES_PATH', 'dependencies/')
 DEPENDENCY_MANIFEST_FILENAME = 'manifest.yml'
 
-# Manifests
 
+# Manifests
 def load_catalog_manifest() -> CatalogManifest:
-    products_files = find_local_files(PRODUCTS_PATH, PRODUCT_MANIFEST_FILENAME)
-    portfolios_files = find_local_files(PORTFOLIOS_PATH, PORTFOLIO_MANIFEST_FILENAME)
-    dependencies_files = find_local_files(DEPENDENCIES_PATH, DEPENDENCY_MANIFEST_FILENAME)
+    products_files = find_local_files(
+        PRODUCTS_PATH, PRODUCT_MANIFEST_FILENAME)
+    portfolios_files = find_local_files(
+        PORTFOLIOS_PATH, PORTFOLIO_MANIFEST_FILENAME)
+    dependencies_files = find_local_files(
+        DEPENDENCIES_PATH, DEPENDENCY_MANIFEST_FILENAME)
 
     prodms = []
     for prodmf in products_files:
@@ -69,7 +68,9 @@ def load_catalog_manifest() -> CatalogManifest:
         dependm.datafile.load()
         dependm.base_path = path.dirname(dependmf)
         dependms.append(dependm)
-    return CatalogManifest(Products=prodms, Portfolios=portms, Dependencies=dependms)
+    return CatalogManifest(
+        Products=prodms, Portfolios=portms, Dependencies=dependms)
+
 
 # Dependencies
 def render_dependencies_parent_templates(catalog: Catalog) -> List[str]:
@@ -81,7 +82,8 @@ def render_dependencies_parent_templates(catalog: Catalog) -> List[str]:
             product.artifact_launch_role,
             product.launch_role_exists
         ))
-        if len(active_ver) > 0 and product.artifact_launch_role and not product.launch_role_exists:
+        if len(active_ver) > 0 and product.artifact_launch_role and \
+                not product.launch_role_exists:
             resource = product.render_nested_stack_launch_role_resource()
             for account_id in product.assoc_accounts+[ACCOUNT_ID]:
                 if resources.get(account_id):
@@ -97,7 +99,9 @@ def render_dependencies_parent_templates(catalog: Catalog) -> List[str]:
                 resources[account_id] = resource
     files = []
     for account_id, ress in resources.items():
-        files.append(create_json_file({"Resources":ress}, file_name=f'{account_id}.json'))
+        files.append(
+            create_json_file(
+                {"Resources": ress}, file_name=f'{account_id}.json'))
     return files
 
 
@@ -105,8 +109,10 @@ def render_dependencies_buildspec(files: list) -> dict:
     deploy_accounts = []
     delete_accounts = accounts_state.get()
     builds = []
+
     for file_name in files:
         account_id = path.basename(file_name).split('.')[0]
+        role_arn = f'arn:aws:iam::{account_id}:role/{ACCOUNTS_XACC_ROLE_NAME}'
         deploy_accounts.append(account_id)
         try:
             delete_accounts.remove(account_id)
@@ -119,15 +125,16 @@ def render_dependencies_buildspec(files: list) -> dict:
                 'buildspec': "deploy.yml",
                 'env': {
                     "variables": {
-                        "role_arn": f'arn:aws:iam::{account_id}:role/{ACCOUNTS_XACC_ROLE_NAME}',
+                        "role_arn": role_arn,
                         "template_file_name": path.basename(file_name),
-                        "stack_name": f'SC-idp-dependencies'
+                        "stack_name": 'core-service-catalog-dependencies'
                     }
                 }
             }
         )
     accounts_state.save(deploy_accounts)
     for account_id in delete_accounts:
+        role_arn = f'arn:aws:iam::{account_id}:role/{ACCOUNTS_XACC_ROLE_NAME}'
         builds.append(
             {
                 'identifier': f'{account_id}_delete',
@@ -135,13 +142,14 @@ def render_dependencies_buildspec(files: list) -> dict:
                 'buildspec': "delete.yml",
                 'env': {
                     "variables": {
-                        "role_arn": f'arn:aws:iam::{account_id}:role/{ACCOUNTS_XACC_ROLE_NAME}',
-                        "stack_name": f'SC-idp-dependencies'
+                        "role_arn": role_arn,
+                        "stack_name": 'core-sc-dependencies'
                     }
                 }
             }
         )
     if not builds:
+        role_arn = f'arn:aws:iam::{ACCOUNT_ID}:role/{ACCOUNTS_XACC_ROLE_NAME}'
         builds = [{
             'identifier': 'build55',
             'ignore-failure': False,
@@ -149,7 +157,7 @@ def render_dependencies_buildspec(files: list) -> dict:
             'env': {
                 "variables": {
                     "action": "delete",
-                    "role_arn": f'arn:aws:iam::{ACCOUNT_ID}:role/{ACCOUNTS_XACC_ROLE_NAME}',
+                    "role_arn": role_arn,
                     "stack_name": 'SC-dummyrole'
                 }
             }
@@ -161,8 +169,8 @@ def render_dependencies_buildspec(files: list) -> dict:
         }
     }
 
-# handler
 
+# handler
 def handler(event, context) -> None:
     logger.debug(json.dumps(event, sort_keys=True, indent=4, default=str))
     job_id = event['CodePipeline.job']['id']
@@ -170,21 +178,28 @@ def handler(event, context) -> None:
         codepipeline.download_input_artifact(event)
         # build model from manifest
         catalog_manifests = load_catalog_manifest()
-        logger.debug(json.dumps(asdict(catalog_manifests), sort_keys=True, indent=4, default=str))
+        logger.debug(json.dumps(
+            asdict(catalog_manifests), sort_keys=True, indent=4, default=str))
         catalog_model = Catalog(catalog_manifests)
-        logger.debug(json.dumps(asdict(catalog_model), sort_keys=True, indent=4, default=str))
-        model_file_path = create_json_file(asdict(catalog_model), file_name=MODEL_FILENAME)
+        logger.debug(json.dumps(
+            asdict(catalog_model), sort_keys=True, indent=4, default=str))
+        model_file_path = create_json_file(
+            asdict(catalog_model), file_name=MODEL_FILENAME)
         codepipeline.upload_output_artifact(
             event,
             int(OUTPUT_ARTIFACT_INDEX_MODEL),
             model_file_path
         )
         # update the versions state according to manifests
-        versions_table.save_versions([asdict(ver) for ver in catalog_model.versions])
+        versions_table.save_versions(
+            [asdict(ver) for ver in catalog_model.versions])
         # create depedencies buildspec and publish as output artifcat
-        dependencies_accounts_templates = render_dependencies_parent_templates(catalog_model)
-        dependencies_buildspec = render_dependencies_buildspec(dependencies_accounts_templates)
-        buildspec_file_path = create_yaml_file(dependencies_buildspec, file_name='buildspec.yml')
+        dependencies_accounts_templates = render_dependencies_parent_templates(
+            catalog_model)
+        dependencies_buildspec = render_dependencies_buildspec(
+            dependencies_accounts_templates)
+        buildspec_file_path = create_yaml_file(
+            dependencies_buildspec, file_name='buildspec.yml')
         codepipeline.upload_output_artifact(
             event,
             int(OUTPUT_ARTIFACT_INDEX_DEPS),
@@ -199,27 +214,5 @@ def handler(event, context) -> None:
         codepipeline.put_job_success(job_id, 'Parsed manifests successfuly')
     except Exception as err:
         logger.debug(traceback.format_exc())
-        codepipeline.put_job_failure(job_id, 'failed with error: {}'.format(err))
-
-# if __name__ == '__main__':
-#     # export ACCOUNT_ID='xxxxxxxxx'
-#     # export LAMBDA_TASK_ROOT='./'
-#     # export ACCOUNTS_XACC_ROLE_NAME=xxac-test-role
-#     # export CATALOG_TABLE_NAME=IdpStack-CatalogTableF8EA09BD-1I1OYWCXVCTZL
-#     # export CATALOG_ARTIFACTS_BUCKET_REGION=eu-west-1
-#     # export CATALOG_ARTIFACTS_BUCKET=XXXX-eu-west-1-idp-catalog
-#     # export OUTPUT_ARTIFACT_INDEX_DEPS=0
-#     # export OUTPUT_ARTIFACT_INDEX_MODEL=1
-#     # export MODEL_FILENAME=model.json
-#     # export PRODUCTS_PATH='/Users/dronen/workspace/solutions/idp-sc-catalog-test001/products'
-#     # export PORTFOLIOS_PATH='/Users/dronen/workspace/solutions/idp-sc-catalog-test001/portfolios'
-#     # export DEPENDENCIES_PATH='/Users/dronen/workspace/solutions/idp-sc-catalog-test001/dependencies'
-#     import json
-#     catalog_manifests = load_catalog_manifest()
-#     print(json.dumps(asdict(catalog_manifests), sort_keys=True, indent=4, default=str))
-#     catalog_model = Catalog(catalog_manifests)
-#     print(json.dumps(asdict(catalog_model), sort_keys=True, indent=4, default=str))
-#     # versions_table.save_versions([asdict(ver) for ver in catalog_model.versions])
-#     dependencies_buildspec = render_dependencies_buildspec(catalog_model)
-#     print(json.dumps(dependencies_buildspec, sort_keys=True, indent=4, default=str))
-#     print(create_yaml_file(dependencies_buildspec))
+        codepipeline.put_job_failure(
+            job_id, 'failed with error: {}'.format(err))

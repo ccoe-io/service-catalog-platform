@@ -11,6 +11,8 @@ from constructs import Construct
 from .logger import logger
 from . import utils
 
+SSM_PARAMETER_NAME_PORTFOLIOS = '/core/service-catalog/portfolios/{}'
+
 
 class PortfolioStack(Stack):
 
@@ -97,6 +99,6 @@ class PortfolioStack(Stack):
             self, "portssmArn"+portfolio['mid'],
             data_type=ssm.ParameterDataType.TEXT,
             string_value=portfolio_res.portfolio_id,
-            parameter_name=f'/idp/stacks/portfolios/{portfolio["mid"]}',
+            parameter_name=SSM_PARAMETER_NAME_PORTFOLIOS.format(portfolio["mid"]),
             simple_name=False
         )

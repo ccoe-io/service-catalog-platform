@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import aws_cdk as cdk
+from aws_cdk import Tags
 import os
 from catalog import utils
 from catalog.portfolio_stack import PortfolioStack
@@ -7,6 +8,7 @@ from catalog.product_stack import ProductStack
 from catalog.tagoption_stack import TagOptionStack
 from catalog.assoc_stack import AssocStack
 
+from tags import tags
 
 app = cdk.App()
 # CatalogStack(app, "CatalogStack",
@@ -29,36 +31,42 @@ app = cdk.App()
 
 model = utils.get_model()
 
-AssocStack(
-    app, "AssocStack", model,
+assoc_stack = AssocStack(
+    app, "core-service-catalog-associations", model,
     env=cdk.Environment(
         account=os.environ.get("CDK_DEPLOY_ACCOUNT", os.environ["CDK_DEFAULT_ACCOUNT"]),
         region=os.environ.get("CDK_DEPLOY_REGION", os.environ["CDK_DEFAULT_REGION"])
     )
 )
 
-TagOptionStack(
-    app, "TagOptionStack", model,
+tagoption_stack = TagOptionStack(
+    app, "core-service-catalog-tagOptions", model,
     env=cdk.Environment(
         account=os.environ.get("CDK_DEPLOY_ACCOUNT", os.environ["CDK_DEFAULT_ACCOUNT"]),
         region=os.environ.get("CDK_DEPLOY_REGION", os.environ["CDK_DEFAULT_REGION"])
     )
 )
 
-ProductStack(
-    app, "ProductStack", model,
+product_stack = ProductStack(
+    app, "core-service-catalog-products", model,
     env=cdk.Environment(
         account=os.environ.get("CDK_DEPLOY_ACCOUNT", os.environ["CDK_DEFAULT_ACCOUNT"]),
         region=os.environ.get("CDK_DEPLOY_REGION", os.environ["CDK_DEFAULT_REGION"])
     )
 )
 
-PortfolioStack(
-    app, "PortfolioStack", model,
+portfolio_stack = PortfolioStack(
+    app, "core-service-catalog-portfolios", model,
     env=cdk.Environment(
         account=os.environ.get("CDK_DEPLOY_ACCOUNT", os.environ["CDK_DEFAULT_ACCOUNT"]),
         region=os.environ.get("CDK_DEPLOY_REGION", os.environ["CDK_DEFAULT_REGION"])
     )
 )
+
+for k, v in tags.items():
+    Tags.of(assoc_stack).add(k, v)
+    Tags.of(tagoption_stack).add(k, v)
+    Tags.of(product_stack).add(k, v)
+    Tags.of(portfolio_stack).add(k, v)
 
 app.synth()

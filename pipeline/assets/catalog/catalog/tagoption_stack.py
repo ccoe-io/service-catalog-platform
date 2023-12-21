@@ -7,6 +7,10 @@ from constructs import Construct
 from .logger import logger
 from . import utils
 
+SSM_PARAMETER_NAME_PRODUCTS = '/core/service-catalog/products/{}'
+SSM_PARAMETER_NAME_PORTFOLIOS = '/core/service-catalog/portfolios/{}'
+SSM_PARAMETER_NAME_TAGOPTIONS = '/core/service-catalog/tagoptions/{}'
+
 
 class TagOptionStack(Stack):
 
@@ -29,6 +33,7 @@ class TagOptionStack(Stack):
             self, "ssmTagOptions"+tag_option['mid'],
             data_type=ssm.ParameterDataType.TEXT,
             string_value=tag_option_res.ref,
-            parameter_name=f'/idp/stacks/tagoptions/{tag_option["mid"]}',
+            parameter_name=SSM_PARAMETER_NAME_TAGOPTIONS.format(
+                tag_option["mid"]),
             simple_name=False
         )

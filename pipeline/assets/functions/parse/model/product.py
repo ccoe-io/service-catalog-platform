@@ -46,7 +46,7 @@ class Product():
         self.mid = self._manifest.Id
         self.local_base_path = os.path.dirname(self._manifest.path)
         self.launch_role_name = (f'{self._manifest.ExistLaunchRoleName}' or
-            f'sc-launch-{self._manifest.Id}') + '-' + REGION
+            f'core-sc-launch-{self._manifest.Id}') + '-' + REGION
         self.launch_role_exists = True if self._manifest.ExistLaunchRoleName else False
         pm = self._manifest
 

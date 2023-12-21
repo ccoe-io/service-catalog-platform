@@ -4,10 +4,10 @@ from aws_cdk import (
     Duration,
     Stack,
     Aws,
+    CfnParameter,
     aws_iam as iam,
     aws_codepipeline as codepipeline,
     aws_codepipeline_actions as codepipeline_actions,
-    # aws_codecommit as codecommit,
     aws_codebuild as codebuild,
     aws_s3 as s3,
     aws_dynamodb as dynamodb,
@@ -18,36 +18,37 @@ from aws_cdk import (
 from aws_cdk.lambda_layer_awscli import AwsCliLayer
 from constructs import Construct
 
-ssm_client = boto3.client('ssm')
+SC_ACCOUNT_STATE_PARAM_NAME = '/core/service-catalog/accounts/state'
 
 
-class IdpStack(Stack):
+class PipelineStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        org_id = ssm_client.get_parameter(
-            Name=self.node.try_get_context("SSM_PARAM_NAME_ORG_ID")
-        )['Parameter']['Value']
+        param_org_id = CfnParameter(
+            self, "OrganizationId", description='Org Id')
+        param_source_org = CfnParameter(
+            self, "CatalogSourceOrg", description='Catalog Source Org')
+        param_source_repo = CfnParameter(
+            self, "CatalogSourceRepo", description='Catalog Source Repo')
+        param_source_branch = CfnParameter(
+            self, "CatalogSourceBranch", description='Catalog Source Branch')
+        param_source_connection_arn = CfnParameter(
+            self, "StarConnectionArn", description='CodeStar connection Arn')
+        param_spoke_xacc_role = CfnParameter(
+            self, "SpokeXaccRole", description='Spoke xacc role')
 
-        source = self.node.try_get_context("CATALOG_SOURCE")
-        # source_bucket = source['s3']['bucket_name']
-        # source_key = source['s3']['bucket_key']
-        source_org = source['git']['repo'].split('/')[0]
-        source_list = source['git']['repo'].split('/')
-        source_list.pop(0)
-        source_repo = path.join(*source_list)
-        source_branch = source['git']['branch']
-        # source_connection_arn = source['git']['connection_arn']
-        source_connection_arn = ssm_client.get_parameter(
-            Name=source['git']['connection_arn_ssm_parameter']
-        )['Parameter']['Value']
-
-        spoke_xacc_role = self.node.try_get_context("SPOKE_XACC_ROLE")
+        org_id = param_org_id.value_as_string
+        source_repo = param_source_repo.value_as_string
+        source_branch = param_source_branch.value_as_string
+        source_connection_arn = param_source_connection_arn.value_as_string
+        spoke_xacc_role = param_spoke_xacc_role.value_as_string
+        source_owner = param_source_org.value_as_string
 
         catalog_cdk_app = s3_assets.Asset(
             self, "CatalogCDKApp",
-            path="idp/assets/catalog"
+            path="pipeline/assets/catalog"
         )
 
         catalog_table = dynamodb.Table(
@@ -60,20 +61,20 @@ class IdpStack(Stack):
 
         accounts_ssm_param_store = ssm.StringParameter(
             self,
-            'accountsssmparameterstore',
+            'AccountsSSMParameterStore',
             string_value="[]",
-            parameter_name='/idp/accounts/state'
+            parameter_name=SC_ACCOUNT_STATE_PARAM_NAME
         )
 
         catalog_artifacts_bucket = s3.Bucket(
             self, "CatalogArtifactsBucket",
             versioned=True,
         )
-        # TODO : allow read to org, write to pipeline only
+
         catalog_artifacts_bucket.add_to_resource_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                actions=["s3:*"],
+                actions=["s3:Get*", "s3:List*"],
                 resources=[
                     catalog_artifacts_bucket.bucket_arn,
                     catalog_artifacts_bucket.arn_for_objects("*")
@@ -86,17 +87,23 @@ class IdpStack(Stack):
                 }
             )
         )
+        catalog_artifacts_bucket.add_to_resource_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["s3:*"],
+                resources=[
+                    catalog_artifacts_bucket.bucket_arn,
+                    catalog_artifacts_bucket.arn_for_objects("*")
+                ],
+                principals=[iam.AccountRootPrincipal()],
+            )
+        )
 
         # TODO should remove the usage of Admin
         managed_admin_policy = iam.ManagedPolicy.from_managed_policy_arn(
             self,
             'policyadmin',
             'arn:aws:iam::aws:policy/AdministratorAccess')
-
-        # repo = codecommit.Repository(
-        #     self, "idp",
-        #     repository_name="catalog"
-        # )
 
         # -------------- Pipeline
         pipeline = codepipeline.Pipeline(self, "sc-platform")
@@ -118,7 +125,6 @@ class IdpStack(Stack):
 
         # -------------- Source
         # TODO Parameterize source (s3bucket, github, bitbucket, codecommit)
-        source_output = codepipeline.Artifact()
 
         # source_action = codepipeline_actions.CodeCommitSourceAction(
         #     action_name="CodeCommit",
@@ -131,7 +137,7 @@ class IdpStack(Stack):
         #     action_name="Github_Source",
         #     output=source_output,
         #     owner="ccoe-io",
-        #     repo="idp-sc-catalog",
+        #     repo="service-catalog-catalog",
         #     branch='main',
         #     oauth_token=SecretValue.secrets_manager("ccoe-io-github-token")
         # )
@@ -139,9 +145,10 @@ class IdpStack(Stack):
         #     self, "SourceBucket", source_bucket)
         # source_ibucket.grant_read(pipeline.role)
 
+        source_output = codepipeline.Artifact()
         source_action = codepipeline_actions.CodeStarConnectionsSourceAction(
             action_name="GitSource",
-            owner=source_org,
+            owner=source_owner,
             connection_arn=source_connection_arn,
             repo=source_repo,
             branch=source_branch,
@@ -198,9 +205,9 @@ class IdpStack(Stack):
 
         pylib_layer = lambda_.LayerVersion(
             self, "LambdaLayer",
-            code=lambda_.Code.from_asset('idp/assets/functions/pylib'),
-            description='Includes python packages required by IDP functions \
-            (pyyaml, datafiles)',
+            code=lambda_.Code.from_asset('pipeline/assets/functions/pylib'),
+            description='Includes python packages required by the platform \
+            functions (pyyaml, datafiles)',
             compatible_architectures=[
                 lambda_.Architecture.X86_64, lambda_.Architecture.ARM_64]
         )
@@ -215,7 +222,7 @@ class IdpStack(Stack):
         parse_lambda = lambda_.Function(
             self, 'ParseLambda',
             runtime=lambda_.Runtime.PYTHON_3_9,
-            code=lambda_.Code.from_asset('idp/assets/functions/parse'),
+            code=lambda_.Code.from_asset('pipeline/assets/functions/parse'),
             handler="index.handler",
             role=parselambdarole,
             timeout=Duration.seconds(120),
@@ -238,7 +245,7 @@ class IdpStack(Stack):
         parse_output_dependencies = codepipeline.Artifact()
         parse_output_model = codepipeline.Artifact()
         parse_action = codepipeline_actions.LambdaInvokeAction(
-            action_name="parse",
+            action_name="model",
             inputs=[source_output],
             lambda_=parse_lambda,
             run_order=2,
@@ -246,7 +253,7 @@ class IdpStack(Stack):
         )
 
         pipeline.add_stage(
-            stage_name="HandleProductsArtifacts",
+            stage_name="Catalog-Scan-Model",
             actions=[scan_action, parse_action]
         )
 
@@ -294,11 +301,11 @@ class IdpStack(Stack):
                         f"cdk bootstrap aws://{Aws.ACCOUNT_ID}/{Aws.REGION}",
                         f"export CDK_DEPLOY_ACCOUNT={Aws.ACCOUNT_ID}",
                         f"export CDK_DEPLOY_REGION={Aws.REGION}",
-                        "cdk deploy AssocStack --require-approval never",
-                        "cdk deploy TagOptionStack --require-approval never",
-                        "cdk deploy ProductStack --require-approval never",
-                        "cdk deploy PortfolioStack --require-approval never",
-                        "cdk deploy AssocStack --require-approval never"
+                        "cdk deploy core-service-catalog-associations --require-approval never",
+                        "cdk deploy core-service-catalog-tagOptions --require-approval never",
+                        "cdk deploy core-service-catalog-products --require-approval never",
+                        "cdk deploy core-service-catalog-portfolios --require-approval never",
+                        "cdk deploy core-service-catalog-associations --require-approval never"
                     ]
                 }
             }
@@ -333,7 +340,7 @@ class IdpStack(Stack):
         # share_lambda = lambda_.Function(
         #     self, 'ShareLambda',
         #     runtime=lambda_.Runtime.PYTHON_3_9,
-        #     code=lambda_.Code.from_asset('idp/assets/functions/share'),
+        #     code=lambda_.Code.from_asset('pipeline/assets/functions/share'),
         #     handler="index.handler",
         #     role=sharelambdarole,
         #     timeout=Duration.seconds(120),
@@ -362,7 +369,7 @@ class IdpStack(Stack):
         # principals_lambda = lambda_.Function(
         #     self, 'PrincipalsLambda',
         #     runtime=lambda_.Runtime.PYTHON_3_9,
-        #     code=lambda_.Code.from_asset('idp/assets/functions/principals'),
+        #     code=lambda_.Code.from_asset('pipeline/assets/functions/principals'),
         #     handler="index.handler",
         #     role=principalslambdarole,
         #     timeout=Duration.seconds(120),

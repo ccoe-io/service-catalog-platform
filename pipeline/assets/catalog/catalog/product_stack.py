@@ -7,6 +7,8 @@ from constructs import Construct
 from .logger import logger
 from . import utils
 
+SSM_PARAMETER_NAME_PRODUCTS = '/core/service-catalog/products/{}'
+
 
 class ProductStack(Stack):
 
@@ -41,6 +43,6 @@ class ProductStack(Stack):
             self, "prodssmArn"+product['mid'],
             data_type=ssm.ParameterDataType.TEXT,
             string_value=product_res.product_id,
-            parameter_name=f'/idp/stacks/products/{product["mid"]}',
+            parameter_name=SSM_PARAMETER_NAME_PRODUCTS.format(product["mid"]),
             simple_name=False
         )

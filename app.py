@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-import os
+from aws_cdk import (
+    App,
+    Tags
+)
 
-import aws_cdk as cdk
+from pipeline.pipeline_stack import PipelineStack
+from tags import tags
 
-from idp.pipeline import PipelineStack
-
-
-app = cdk.App()
-PipelineStack(app, "service-catalog-platform-cdk-pipeline",
+app = App()
+pipeline_stack = PipelineStack(app, "core-service-catalog-platfrom",
     # If you don't specify 'env', this stack will be environment-agnostic.
     # Account/Region-dependent features and context lookups will not work,
     # but a single synthesized template can be deployed anywhere.
@@ -20,9 +21,12 @@ PipelineStack(app, "service-catalog-platform-cdk-pipeline",
     # Uncomment the next line if you know exactly what Account and Region you
     # want to deploy the stack to. */
 
-    env=cdk.Environment(account='311115099371', region='us-east-1'),
+    #env=cdk.Environment(account='123456789012', region='us-east-1'),
 
     # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
     )
+
+for k, v in tags.items():
+    Tags.of(pipeline_stack).add(k, v)
 
 app.synth()

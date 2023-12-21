@@ -100,13 +100,15 @@ class Template():
             # run_path = os.path.abspath('.')
             dir_path = os.path.dirname(os.path.abspath(self.local_path))
             # os.chdir(dir_path)
-            requirements_file = list(
-                Path(dir_path).rglob('requirements.txt'))[0]
-            app_path = os.path.dirname(os.path.abspath(requirements_file))
-            args = ['pip', 'install', '-q', '-r',
-                    requirements_file, '--target', app_path]
-            subproc_res = subprocess.run(args)
-            logger.debug('subprocess run completed {}'.format(subproc_res))
+            requirements_files = list(
+                Path(dir_path).rglob('requirements.txt'))
+            if len(requirements_files) > 0:
+                requirements_file = requirements_files[0]
+                app_path = os.path.dirname(os.path.abspath(requirements_file))
+                args = ['pip', 'install', '-q', '-r',
+                        requirements_file, '--target', app_path]
+                subproc_res = subprocess.run(args)
+                logger.debug('subprocess run completed {}'.format(subproc_res))
 
             parameters = [
                 '--template-file', self.local_path,
