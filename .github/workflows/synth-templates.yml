@@ -19,7 +19,7 @@ jobs:
           AWS_DEFAULT_REGION: 'us-east-1'
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: |
-          zip --junk-paths deployment cdk.out/
+          zip -R templates cdk.out/
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
