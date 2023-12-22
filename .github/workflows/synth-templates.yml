@@ -16,16 +16,16 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'us-east-1'
-      - name: Build project
+      - name: Package
         run: |
-          zip -R deployment.zip cdk.out/
+          zip -r deployment.zip cdk.out/
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: 'Latest'
+          tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
           body: |
             Changes in this Release
