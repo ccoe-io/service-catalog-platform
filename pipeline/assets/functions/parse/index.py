@@ -20,6 +20,7 @@ from manifest.manifest import (
 )
 from model.catalog import Catalog
 
+TAGS = environ['TAGS']
 ACCOUNT_ID = environ['ACCOUNT_ID']
 BASE_PATH = environ['LAMBDA_TASK_ROOT']
 ACCOUNTS_XACC_ROLE_NAME = environ['ACCOUNTS_XACC_ROLE_NAME']
@@ -109,6 +110,9 @@ def render_dependencies_buildspec(files: list) -> dict:
     deploy_accounts = []
     delete_accounts = accounts_state.get()
     builds = []
+    tags = ' '.join([f"{key}={value}" for key, value in json.loads(TAGS).items()])
+    if len(tags) < 5:
+        tags = 'corp:op:application-name=service-catalog-platform'
 
     for file_name in files:
         account_id = path.basename(file_name).split('.')[0]
@@ -127,7 +131,8 @@ def render_dependencies_buildspec(files: list) -> dict:
                     "variables": {
                         "role_arn": role_arn,
                         "template_file_name": path.basename(file_name),
-                        "stack_name": 'core-service-catalog-dependencies'
+                        "stack_name": 'core-service-catalog-dependencies',
+                        "tags": tags
                     }
                 }
             }

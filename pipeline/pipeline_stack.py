@@ -1,5 +1,4 @@
-import boto3
-from os import path
+import json
 from aws_cdk import (
     Duration,
     Stack,
@@ -17,6 +16,7 @@ from aws_cdk import (
 )
 from aws_cdk.lambda_layer_awscli import AwsCliLayer
 from constructs import Construct
+from pipeline.dependencies_tags import tags
 
 SC_ACCOUNT_STATE_PARAM_NAME = '/core/service-catalog/accounts/state'
 
@@ -236,7 +236,8 @@ class PipelineStack(Stack):
                 "ACCOUNT_ID": Aws.ACCOUNT_ID,
                 "OUTPUT_ARTIFACT_INDEX_DEPS": '0',
                 "OUTPUT_ARTIFACT_INDEX_MODEL": '1',
-                "MODEL_FILENAME": model_filename
+                "MODEL_FILENAME": model_filename,
+                "TAGS": json.dumps(tags)
             },
             layers=[pylib_layer]
         )
