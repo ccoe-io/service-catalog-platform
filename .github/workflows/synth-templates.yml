@@ -11,13 +11,12 @@ jobs:
         uses: youyo/aws-cdk-github-actions@v2
         with:
           cdk_subcommand: 'synth'
-          cdk_version: '2.115.0'
-          working_dir: '.'
+          cdk_args: '--output cdk.out --build'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'us-east-1'
-      - name: Build project # This would actually build your project, using zip for an example artifact
+      - name: Build project
         run: |
           zip -R deployment.zip cdk.out/
       - name: Create Release
