@@ -14,11 +14,13 @@ from aws_cdk import (
     aws_lambda as lambda_,
     aws_s3_assets as s3_assets
 )
+from aws_cdk.aws_ecr_assets import DockerImageAsset
 from aws_cdk.lambda_layer_awscli import AwsCliLayer
 from constructs import Construct
 from pipeline.dependencies_tags import tags
 
 SC_ACCOUNT_STATE_PARAM_NAME = '/core/service-catalog/accounts/state'
+CDK_MACRO_IMAGE_PARAM_NAME = '/core/service-catalog/cdk-macro/image-uri'
 
 
 class PipelineStack(Stack):
@@ -49,6 +51,18 @@ class PipelineStack(Stack):
         catalog_cdk_app = s3_assets.Asset(
             self, "CatalogCDKApp",
             path="pipeline/assets/catalog"
+        )
+
+        cdk_macro = DockerImageAsset(
+            self, "LambdaMacroImage",
+            directory="pipeline/assets/cdk-macro"
+        )
+
+        cdk_macro_image_ssm_param_store = ssm.StringParameter(
+            self,
+            'CDKMacroImageSSMParameterStore',
+            string_value=cdk_macro.image_uri,
+            parameter_name=CDK_MACRO_IMAGE_PARAM_NAME
         )
 
         catalog_table = dynamodb.Table(
