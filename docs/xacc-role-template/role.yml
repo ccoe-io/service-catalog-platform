@@ -30,18 +30,12 @@ Resources:
       }
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSServiceCatalogAdminFullAccess
+        - arn:aws:iam::aws:policy/AdministratorAccess
       Policies:
         - PolicyName: inline
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-            - Effect: Allow
-              Action:
-              - "iam:ListRoles"
-              - "cloudformation:*"
-              - "sqs:*"
-              - "ssm:*"
-              Resource: "*"
             - Effect: Allow
               Action:
               - iam:CreateRole
@@ -51,74 +45,24 @@ Resources:
               - iam:PassRole
               - iam:AttachRolePolicy
               - iam:DetachRolePolicy
-              Resource: "*"
-            - Effect: Allow
-              Action:
+              - iam:ListRoles
               - iam:DeleteRole
               - iam:DeleteRolePolicy
+              - iam:TagRole
               Resource: "*"
             - Effect: Allow
               Action:
-              - s3:GetObject
-              - s3:GetObjectAcl
               - s3:GetBucketVersioning
-              - s3:GetObjectVersionAcl
-              - s3:GetObjectVersionTorrent
+              - s3:GetObject
+              - s3:GetObject*
               - s3:GetEncryptionConfiguration
-              - s3:GetObjectVersion
-              - s3:GetObjectVersionAttributes
-              - s3:GetObjectRetention
-              - s3:GetObjectTagging
-              - s3:GetObjectAttributes
-              - s3:GetObjectVersionTagging
-              - s3:GetObjectTorrent
-              - s3:GetObjectVersionForReplication
-              - s3:GetObjectLegalHold
               - s3:list*
               Resource: "*"
             - Effect: Allow
               Action:
-              - lambda:CreateFunction
-              - lambda:TagResource
-              - lambda:ListVersionsByFunction
-              - lambda:GetLayerVersion
-              - lambda:GetFunctionConfiguration
-              - lambda:RemoveLayerVersionPermission
-              - lambda:UntagResource
-              - lambda:ListTags
-              - lambda:DeleteLayerVersion
-              - lambda:PutFunctionEventInvokeConfig
-              - lambda:DeleteFunctionEventInvokeConfig
-              - lambda:DeleteFunction
-              - lambda:UpdateFunctionEventInvokeConfig
-              - lambda:UpdateEventSourceMapping
-              - lambda:GetFunction
-              - lambda:UpdateFunctionConfiguration
-              - lambda:AddLayerVersionPermission
-              - lambda:UpdateAlias
-              - lambda:UpdateFunctionCode
-              - lambda:AddPermission
-              - lambda:GetFunctionEventInvokeConfig
-              - lambda:DeleteAlias
-              - lambda:PublishVersion
-              - lambda:DeleteEventSourceMapping
-              - lambda:RemovePermission
-              - lambda:CreateAlias
-              Resource:
-              - !Sub arn:aws:lambda:*:${AWS::AccountId}:function:*
-              - !Sub arn:aws:lambda:*:${AWS::AccountId}:event-source-mapping:*
-              - !Sub arn:aws:lambda:*:${AWS::AccountId}:layer:*:*
-            - Effect: Allow
-              Action: lambda:PublishLayerVersion
-              Resource: !Sub arn:aws:lambda:*:${AWS::AccountId}:layer:*
-            - Effect: Allow
-              Action:
-              - lambda:ListFunctions
-              - lambda:ListLayerVersions
-              - lambda:ListLayers
-              - lambda:CreateEventSourceMapping
-              Resource: "*"
-            - Effect: Allow
-              Action:
-              - iam:TagRole
+              - cloudformation:*
+              - sqs:*
+              - ssm:*
+              - lambda:*
+              - ecr:*
               Resource: "*"
