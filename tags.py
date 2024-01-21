@@ -1,14 +1,14 @@
 tags = {
-  "corp:business:cost-center": "PlatformEngineering",
-  "corp:business:owner": "platformengineering@corp.com",
-  "corp:ops:application-id": "service-catalog-platfrom",
-  "corp:ops:application-name": "service-catalog-platform",
-  "corp:ops:infrastructure-plane": "LandingZone",
-  "corp:ops:lifecycle": "prod",
-  "corp:ops:owner": "platformengineering@corp.com",
-  "corp:ops:data-classification": "Private",
-  "corp:iac:source": "https://github.com/ccoe-io/service-catalog-platform",
-  "corp:iac:source-version": "N/A",
-  "corp:iac:state": "cloudformation-stack",
-  "corp:mgmt:access-control:ManagedBy": "core-deployments"
+  "titan:business:cost-center": "PlatformEngineering",
+  "titan:business:owner": "platformengineering@titan.com",
+  "titan:ops:application-id": "service-catalog-platfrom",
+  "titan:ops:application-name": "service-catalog-platform",
+  "titan:ops:infrastructure-plane": "LandingZone",
+  "titan:ops:lifecycle": "prod",
+  "titan:ops:owner": "platformengineering@titan.com",
+  "titan:ops:data-classification": "Private",
+  "titan:iac:source": "https://github.com/ccoe-io/service-catalog-platform",
+  "titan:iac:source-version": "N/A",
+  "titan:iac:state": "cloudformation-stack",
+  "titan:mgmt:access-control:managed-by": "core-deployments"
 }

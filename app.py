@@ -8,7 +8,9 @@ from pipeline.pipeline_stack import PipelineStack
 from tags import tags
 
 app = App()
-pipeline_stack = PipelineStack(app, "core-service-catalog-platfrom",
+pipeline_stack = PipelineStack(
+    app, "core-service-catalog-platfrom",
+    tags=tags,
     # If you don't specify 'env', this stack will be environment-agnostic.
     # Account/Region-dependent features and context lookups will not work,
     # but a single synthesized template can be deployed anywhere.

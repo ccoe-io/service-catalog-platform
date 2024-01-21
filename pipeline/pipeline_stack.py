@@ -17,7 +17,7 @@ from aws_cdk import (
 from aws_cdk.aws_ecr_assets import DockerImageAsset
 from aws_cdk.lambda_layer_awscli import AwsCliLayer
 from constructs import Construct
-from pipeline.dependencies_tags import tags
+# from pipeline.dependencies_tags import tags
 
 SC_ACCOUNT_STATE_PARAM_NAME = '/core/service-catalog/accounts/state'
 CDK_MACRO_IMAGE_PARAM_NAME = '/core/service-catalog/cdk-macro/image-uri'
@@ -47,6 +47,7 @@ class PipelineStack(Stack):
         source_connection_arn = param_source_connection_arn.value_as_string
         spoke_xacc_role = param_spoke_xacc_role.value_as_string
         source_owner = param_source_org.value_as_string
+        tags = kwargs.get('tags', [])
 
         catalog_cdk_app = s3_assets.Asset(
             self, "CatalogCDKApp",
