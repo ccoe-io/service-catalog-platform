@@ -148,7 +148,7 @@ def render_dependencies_buildspec(files: list) -> dict:
                 'env': {
                     "variables": {
                         "role_arn": role_arn,
-                        "stack_name": 'core-sc-dependencies'
+                        "stack_name": 'core-service-catalog-dependencies'
                     }
                 }
             }
