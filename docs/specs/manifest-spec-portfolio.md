@@ -30,37 +30,39 @@ Principals:
       - ResourceName_*
       - */ResourceName_?
       - aws-reserved/sso.amazonaws.com/AWSReservedSSO_ReadOnlyAccess*
-  - SelectorType: ARN # Not Supported
-    Values:
-      - <full name>
-      - <substring>
-  - SelectorType: Tags # Not supported
-    Values:
-      - <key>: <value>
-      - <key>: <value>
+  # - SelectorType: ARN # Not Supported
+  #   Values:
+  #     - <full name>
+  #     - <substring>
+  # - SelectorType: Tags # Not supported
+  #   Values:
+  #     - <key>: <value>
+  #     - <key>: <value>
 
 Shares:
   - SelectorType: AccountsIds
     Values:
       - <account-id>
       - <account-id>
-  - SelectorType: Tags # Not supported
-    Values:
-      - <key>: <value>
-      - <key>: <value>
-  - SelectorType: AccountsNames # Not supported
-    Values:
-      - <account-name>
-      - <account-name>
-  - SelectorType: OrgUnitsIDs # Not supported
-    # Temporary not supported in favor of supporting AMS accounts
-    # Nested OUs not supported
+  - SelectorType: OrgUnitsIds
     Values:
       - <ou-id>
       - <ou-id>
-  - SelectorType: OrgUnitsNames # Not supported
-    # Nested OUs not supported
+  - SelectorType: OrgIds
     Values:
-      - <ou-path>/<ou-name>
-      - <ou-path>/<ou-name>
+      - <org-id>
+
+  # - SelectorType: OrgUnitsNames # Not supported
+  #   # Nested OUs not supported
+  #   Values:
+  #     - <ou-path>/<ou-name>
+  #     - <ou-path>/<ou-name>
+  # - SelectorType: Tags # Not supported
+  #   Values:
+  #     - <key>: <value>
+  #     - <key>: <value>
+  # - SelectorType: AccountsNames # Not supported
+  #   Values:
+  #     - <account-name>
+  #     - <account-name>
 ```

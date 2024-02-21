@@ -67,19 +67,14 @@ class PortfolioStack(Stack):
             message_language=servicecatalog.MessageLanguage.EN,
         )
 
-        for account_id in portfolio['accounts']:
-            CustomResource(
-                self, "share-"+account_id+portfolio['mid'],
-                service_token=self.share_portfolio_function.function_arn,
-                properties={
-                    "PortfolioId": portfolio_res.portfolio_id,
-                    "NodeType": "ACCOUNT",
-                    "NodeId": account_id
-                }
-            )
-            # portfolio_res.share_with_account(
-            #     account_id, share_tag_options=True)
-
+        for share in portfolio['shares']:
+            for account_id in share.get('AccountsIds', []):
+                self.custom_resource(account_id, "ACCOUNT", portfolio['mid'], portfolio_res)
+            for ou_id in share.get('OrgUnitsIds', []):
+                self.custom_resource(ou_id, "ORGANIZATIONAL_UNIT", portfolio['mid'], portfolio_res)
+            for org_id in share.get('OrgIds', []):
+                self.custom_resource(org_id, "ORGANIZATION", portfolio['mid'], portfolio_res)
+    
         for principal in portfolio['principals']:
             if principal['SelectorType'] != 'RoleName':
                 logger.error(
@@ -102,3 +97,17 @@ class PortfolioStack(Stack):
             parameter_name=SSM_PARAMETER_NAME_PORTFOLIOS.format(portfolio["mid"]),
             simple_name=False
         )
+
+    def custom_resource(self, object_id, node_type, portfolio_id, portfolio_res):
+        CustomResource(
+            self, "share-"+object_id+portfolio_id,
+            service_token=self.share_portfolio_function.function_arn,
+            properties={
+                "PortfolioId": portfolio_res.portfolio_id,
+                "NodeType": node_type,
+                "NodeId": object_id
+            }
+        )
+        # portfolio_res.share_with_account(
+        #     account_id, share_tag_options=True)
+

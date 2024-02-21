@@ -26,7 +26,6 @@ class Portfolio():
         self.ProviderName = manifest.ProviderName
 
         self.assoc_products = self._manifest.Products
-
         self.build_shares()
         self.principals = self._manifest.Principals
 
@@ -40,8 +39,11 @@ class Portfolio():
     def build_shares(self):
         for share in self._manifest.Shares:
             if share.SelectorType == 'AccountsIds':
-                self.accounts = share.Values
-        self.shares = {"AccountsIds": self.accounts}
+                self.shares.update({"AccountsIds": share.Values})
+            elif share.SelectorType == 'OrgUnitsIds':
+                self.shares.update({"OrgUnitsIds": share.Values})
+            elif share.SelectorType == 'OrgIds':
+                self.shares.update({"OrgIds": share.Values})
 
 
 @dataclass
