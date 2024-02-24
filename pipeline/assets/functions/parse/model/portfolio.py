@@ -1,8 +1,10 @@
 from typing import List, Dict
 from dataclasses import dataclass, field, InitVar
 from logger import logger
+import jmespath
 from manifest.manifest import PortfolioManifest
 from model.tagoption import TagOption
+from aws.accounts import get_member_accounts_ids
 
 
 @dataclass
@@ -40,11 +42,17 @@ class Portfolio():
         for share in self._manifest.Shares:
             if share.SelectorType == 'AccountsIds':
                 self.shares.update({"AccountsIds": share.Values})
+                self.accounts += share.Values
             elif share.SelectorType == 'OrgUnitsIds':
                 self.shares.update({"OrgUnitsIds": share.Values})
+                for ou_id in share.Values:
+                    self.accounts += get_member_accounts_ids(ou_id=ou_id)
             elif share.SelectorType == 'OrgIds':
                 self.shares.update({"OrgIds": share.Values})
-
+                self.accounts += get_member_accounts_ids()
+        accounts_normalized = jmespath.search("[][][][][]", self.accounts) 
+        self.accounts = list(set(accounts_normalized))
+        
 
 @dataclass
 class Portfolios():

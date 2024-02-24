@@ -67,13 +67,13 @@ class PortfolioStack(Stack):
             message_language=servicecatalog.MessageLanguage.EN,
         )
 
-        for share in portfolio['shares']:
-            for account_id in share.get('AccountsIds', []):
-                self.custom_resource(account_id, "ACCOUNT", portfolio['mid'], portfolio_res)
-            for ou_id in share.get('OrgUnitsIds', []):
-                self.custom_resource(ou_id, "ORGANIZATIONAL_UNIT", portfolio['mid'], portfolio_res)
-            for org_id in share.get('OrgIds', []):
-                self.custom_resource(org_id, "ORGANIZATION", portfolio['mid'], portfolio_res)
+        shares = portfolio['shares']
+        for account_id in shares.get('AccountsIds', []):
+            self.custom_resource(account_id, "ACCOUNT", portfolio['mid'], portfolio_res)
+        for ou_id in shares.get('OrgUnitsIds', []):
+            self.custom_resource(ou_id, "ORGANIZATIONAL_UNIT", portfolio['mid'], portfolio_res)
+        for org_id in shares.get('OrgIds', []):
+            self.custom_resource(org_id, "ORGANIZATION", portfolio['mid'], portfolio_res)
     
         for principal in portfolio['principals']:
             if principal['SelectorType'] != 'RoleName':
@@ -94,7 +94,7 @@ class PortfolioStack(Stack):
             self, "portssmArn"+portfolio['mid'],
             data_type=ssm.ParameterDataType.TEXT,
             string_value=portfolio_res.portfolio_id,
-            parameter_name=SSM_PARAMETER_NAME_PORTFOLIOS.format(portfolio["mid"]),
+            parameter_name=SSM_PARAMETER_NAME_PORTFOLIOS.format(portfolio["mid"]), 
             simple_name=False
         )
 
