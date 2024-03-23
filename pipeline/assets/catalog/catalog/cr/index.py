@@ -1,6 +1,8 @@
 import os
 import logging
+from time import sleep
 import boto3
+from botocore.exceptions import ClientError
 from crhelper import CfnResource
 
 logger = logging.getLogger(__name__)
@@ -30,6 +32,18 @@ def create(event, context):
     node_id = event['ResourceProperties']['NodeId']
     node_type = event['ResourceProperties']['NodeType']
 
+    try:
+        share(node_id, node_type, portfolio_id)
+    except ClientError as err:
+        if err.response['Error']['Code'] == 'InvalidStateException':
+            sleep(40)
+            share(node_id, node_type, portfolio_id)
+
+    physical_id = "share-" + portfolio_id + node_id
+    return physical_id
+
+
+def share(node_id, node_type, portfolio_id):
     client.create_portfolio_share(
         PortfolioId=portfolio_id,
         OrganizationNode={
@@ -39,8 +53,6 @@ def create(event, context):
         ShareTagOptions=True,
         SharePrincipals=True
     )
-    physical_id = "share-" + portfolio_id + node_id
-    return physical_id
 
 
 @helper.update
@@ -52,6 +64,18 @@ def update(event, context):
     node_id = event['ResourceProperties']['NodeId']
     node_type = event['ResourceProperties']['NodeType']
 
+    try:
+        update_share(node_id, node_type, portfolio_id)
+    except ClientError as err:
+        if err.response['Error']['Code'] == 'InvalidStateException':
+            sleep(40)
+            update_share(node_id, node_type, portfolio_id)
+
+    physical_id = "share-" + portfolio_id + node_id
+    return physical_id
+
+
+def update_share(node_id, node_type, portfolio_id):
     client.update_portfolio_share(
         PortfolioId=portfolio_id,
         OrganizationNode={
@@ -61,8 +85,6 @@ def update(event, context):
         ShareTagOptions=True,
         SharePrincipals=True
     )
-    physical_id = "share-" + portfolio_id + node_id
-    return physical_id
 
 
 @helper.delete
